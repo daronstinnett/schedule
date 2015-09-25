@@ -1,0 +1,221 @@
+{% load static %}
+
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html lang="en" class="no-js"> <!--<![endif]-->
+<html>
+<!--<![endif]-->
+
+<head>
+    <title></title>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <!-- Google Font: Open Sans -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:400,400italic,600,600italic,800,800italic">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Oswald:400,300,700">
+    
+    {% block css %}
+
+    {% block base-css %}
+    <!-- Lib CSS -->
+    <link rel="stylesheet" href="{% static 'lib/bootstrap/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'lib/toastr/toastr.min.css' %}">
+    <!-- Fonts  -->
+    <link rel="stylesheet" href="{% static 'css/font-awesome.min.css' %}">
+    <!-- App CSS -->
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    <link rel="stylesheet" href="{% static 'themes/admin/css/mvpready-admin.css' %}">    
+    {% endblock base-css %}
+    
+    
+    <!-- Custom styles for this theme -->
+    {% endblock css %}
+
+    <!-- Feature detection -->
+    <script src="{% static 'js/vendor/modernizr-2.6.2.min.js' %}"></script>
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+    <script src="{% static 'js/vendor/html5shiv.js' %}"></script>
+    <script src="{% static 'js/vendor/respond.min.js' %}"></script>
+    <![endif]-->
+</head>
+
+<body>
+    <div id="wrapper">
+        {% include "partials/header.html" %}
+        {% include "partials/navbar.html" %}
+
+    	<div class="content">
+            <div class="container">
+            	{% block messages %}
+            	<div class="row">
+	            	<div class="col-xs-12" id="messages">
+					{% if messages %}
+					    {% for message in messages %}
+					    <div class="alert {% for tag in message.tags_as_list %}alert-{{ tag }} {% endfor %} fade in">
+					            <a class="close" data-dismiss="alert" href="#">&times;</a>
+					            {% if 'noicon' not in message.tags %}
+					                {# Include an icon by default #}
+					                {% if 'success' in message.tags %}
+					                    <i class="fa fa-ok-sign"></i>
+					                {% endif %}
+					                {% if 'info' in message.tags %}
+					                    <i class="fa fa-info-sign"></i>
+					                {% endif %}
+					                {% if 'warning' in message.tags %}
+					                    <i class="fa fa-warning-sign"></i>
+					                {% endif %}
+					                {% if 'danger' in message.tags %}
+					                    <i class="fa fa-exclamation-sign"></i>
+					                {% endif %}
+					            {% endif %}
+					
+					            {# Allow HTML to be embedded in messages #}
+					            {% if 'safe' in message.tags %}
+					                {{ message|safe }}
+					            {% else %}
+					                {{ message }}
+					            {% endif %}
+					        </div>
+					    {% endfor %}
+					{% endif %}
+	            	</div>
+            	</div>
+            	{% endblock messages %}
+    		    {% block page-content %}
+    		    {% endblock page-content %}
+    		    
+        	</div> <!-- /.container -->
+        </div> <!-- .content -->
+    </div> <!-- /#wrapper -->
+
+	{% include "partials/error_detail_modal.html" %}
+
+    <footer class="footer">
+        <div class="container">
+            <p class="pull-left">Copyright &copy; 2015 Sequoia Lane.</p>
+        </div>
+    </footer>
+
+	<!-- underscore templates -->
+	{% include "partials/alert_template.html" %}
+
+
+    <!--Global JS-->
+    {% block javascript %}
+    <script src="{% static 'js/vendor/jquery-1.11.1.min.js' %}"></script>
+    <script src="{% static 'js/vendor/jquery.cookie.js' %}"></script>
+    <script src="{% static 'js/vendor/moment.min.js' %}"></script>
+    <script src="{% static 'lib/bootstrap/js/bootstrap.min.js' %}"></script>
+	<script src="{% static 'js/vendor/underscore.min.js' %}"></script>
+	<script src="{% static 'js/vendor/backbone.min.js' %}"></script>
+	<script src="{% static 'js/vendor/backbone-query.min.js' %}"></script>	  
+	<script src="{% static 'js/vendor/purl.js' %}"></script>  
+	<script src="{% static 'lib/toastr/toastr.min.js' %}"></script>  
+    <script src="{% static 'themes/admin/js/jquery.slimscroll.min.js' %}"></script>  
+    <!-- App JS -->
+    <script src="{% static 'themes/admin/js/mvpready-core.js' %}"></script>
+    <script src="{% static 'themes/admin/js/mvpready-helpers.js' %}"></script>
+    <script src="{% static 'themes/admin/js/mvpready-admin.js' %}"></script>      
+    <script src="{% static 'js/main.js' %}"></script>      
+    <script src="{% static 'js/models.js' %}"></script>      
+    <script>
+    var Model;
+    var Collection;
+ 	Model = Backbone.Model.extend({
+		url: function() {
+	        var origUrl = Backbone.Model.prototype.url.call(this);
+	        return origUrl + (origUrl.charAt(origUrl.length - 1) == '/' ? '' : '/');
+	    }
+	});
+	Collection = Backbone.QueryCollection.extend({
+		url: function() {
+	        var origUrl = Backbone.Model.prototype.url.call(this);
+	        return origUrl + (origUrl.charAt(origUrl.length - 1) == '/' ? '' : '/');
+	    }
+	});
+	View = Backbone.View
+	
+	// override sync to include csrf token
+	var oldSync = Backbone.sync;
+	Backbone.sync = function(method, model, options){
+	    options.beforeSend = function(xhr){
+			xhr.setRequestHeader('X-CSRFToken', "{{ csrf_token }}");
+	    };
+    	return oldSync(method, model, options);
+	};
+	
+    // setup urls
+	var urls = {
+    	api: {
+			resources:			"{% url 'api:resource-list' %}",	
+			bookings:			"{% url 'api:booking-list' %}",	
+			projects:			"{% url 'api:project-list' %}",	    		
+    	},
+    	templates: {
+			projects:			_.template("/projects/<%= id %>/"),	    		
+    		
+    	},
+		resources:			"",	
+		calendar:			"/bookings/calendar/",	
+		projects:			"/projects/",	    		
+    	
+	};	
+    // parse common url params
+    var url = $.url();
+    var urlParams = {
+    	resource:			url.param('resource'),
+    	booking:			url.param('booking')
+    }
+    // complile templates
+	var templates = {
+		alert: _.template($("#alertTemplate").html())
+	}
+    
+		
+	$(function() {		
+	    // init tooltips
+	    $("[data-toggle='tooltip']").tooltip();
+	    // setup generic error handler
+	    $(document).ajaxError(function (e, xhr, options) {
+	    	var message = 'An error occurred. <br /><br /><button type="button" id="error-details-button" class="btn clear">Details</button>';
+			toastr.error(message, {
+				closeButton: true,
+				timeOut: 10000,
+			});
+			var tpl = _.template(
+				'<strong><u>Request</u></strong><br />'+
+				'<%= method %>: <%= url %><br />'+
+				'<br />'+
+				'data: <%= data %><br />'+
+				'<br />'+
+				'<strong><u>Response</u></strong><br />'+
+				'<%= status_code %> - <%= status_text %><br />'+
+				'<br />'+
+				'<%= response %>'
+			);
+			$("#error-details").html(tpl({
+				url: options.url,
+				method: options.type,
+				data: options.data,
+				status_code: xhr.status,
+				status_text: xhr.statusText,
+				response: xhr.responseText
+			}));
+			$("#error-details-button").click(function () {
+				$('#error-details-modal').modal();
+			});
+	    });
+	});
+ 
+    </script>
+    {% endblock javascript %}
+</body>
+
+</html>

@@ -1,0 +1,13 @@
+<script type="text/template" id="alertTemplate">
+<div class="alert alert-<%= severity %> fade in">
+	<a class="close" data-dismiss="alert" href="#">&times;</a>
+		<% switch(severity) {
+			case 'success': print('<i class="fa fa-ok-sign"></i>'); break;
+			case 'info': print('<i class="fa fa-info-sign"></i>'); break;
+			case 'warning': print('<i class="fa fa-warning-sign"></i>'); break;
+			case 'danger': print('<i class="fa fa-exclamation-sign"></i>'); break;
+		} %>
+
+        <%= message %>
+</div>
+</script>

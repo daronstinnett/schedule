@@ -1,0 +1,7 @@
+{% load bootstrap3 %}
+
+<div class="form-group">
+	<label class="col-sm-1 control-label" id="{{ form.resource.id_for_label }}">{{ form.resource.label }}</label>
+	<div class="col-sm-11">{% bootstrap_field form.resource form_group_class="" show_label="" %}</div>
+	
+</div>

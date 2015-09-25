@@ -1,0 +1,339 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load bootstrap3 %}
+{% load i18n %}
+
+{% block css %}
+	{{ block.super }}
+	<link rel="stylesheet" href="{% static 'lib/fullcalendar/fullcalendar.min.css' %}">
+	<link rel="stylesheet" href="{% static 'lib/bootstrap3-editable/css/bootstrap-editable.css' %}">
+	<link rel="stylesheet" href="{% static 'lib/select2/dist/css/select2.css' %}">
+	<link rel="stylesheet" href="{% static 'lib/select2/dist/css/select2-bootstrap.css' %}">
+	<link rel="stylesheet" href="{% static 'lib/bootstrap-datepicker/css/bootstrap-datepicker3.min.css' %}">
+	<link rel="stylesheet" href="{% static 'lib/jquery-timepicker/jquery.timepicker.css' %}">
+	<style>
+	#bookings input:hover {
+		background-color: #eee;
+	}
+	#bookings td input,
+	#bookings .select2-container--default .select2-selection--single {
+		box-shadow: none;
+		display: inline-block !important;
+	}
+	#bookings td input,
+	#bookings .select2-container--default .select2-selection--single:not(:hover) {
+		border: solid 1px transparent !important;
+	}
+	#bookings input.date {
+		width: 100px;
+	}
+	#bookings input.time {
+		width: 70px;
+	}
+	.layout-sidebar {
+		min-height: 900px;
+	}
+	.fc-unthemed .fc-divider, .fc-unthemed .fc-popover, .fc-unthemed .fc-row, .fc-unthemed tbody, .fc-unthemed td, .fc-unthemed th, .fc-unthemed thead {
+	    border-color: #FFF;
+	    background-color: rgba(0, 0, 0, 0.01);
+	}
+	</style>
+{% endblock css %}
+
+
+{% block page-content %}
+<div class="layout layout-stack-sm layout-main-right">
+	<div class="col-md-3 layout-sidebar">
+		<div class="row">
+			<div class="col-xs-12 text-center">
+				<h3 id="cal-current-date">August 2015</h3>
+			</div>
+		</div>
+		<div class="row">
+			<div id="cal-controls" class="col-xs-12 text-center">
+				<div class="btn-group" role="group">
+					<button id="cal-previous" type="button" class="btn btn-xs btn-default" data-function="prev"><i class="fa fa-chevron-left" data-toggle="tooltip" data-placement="bottom" title="Previous"></i></button>
+					<button id="cal-next" type="button" class="btn btn-xs btn-default" data-function="next"><i class="fa fa-chevron-right" data-toggle="tooltip" data-placement="bottom" title="Next"></i></button>
+				</div>
+				<div class="btn-group" role="group">
+					<button id="cal-month" type="button" class="btn btn-xs btn-default" data-function="changeView month"><i class="fa fa-calendar" data-toggle="tooltip" data-placement="bottom" title="Month"></i></button>
+					<button id="cal-week" type="button" class="btn btn-xs btn-default" data-function="changeView agendaWeek"><i class="fa fa-calendar-o" data-toggle="tooltip" data-placement="bottom" title="Week"></i></button>
+					<button id="cal-today" type="button" class="btn btn-xs btn-default" data-function="today"><i class="fa fa-clock-o" data-toggle="tooltip" data-placement="bottom" title="Today"></i></button>
+				</div>
+			</div>
+		</div>
+		<hr>
+		<div class="row">
+			<div class="col-xs-12">
+				<select id="resourceSelect" style="visibility:hidden;width:100%;">
+					<option value="" selected="selected">ALL RESOURCES</option>
+				{% for r in resources %}
+					<option value="{{ r.id }}">{{ r.full_name }}</option>
+				{% endfor %}
+				</select>
+			</div>
+		</div>
+		<br>
+		<div class="row">
+			<div id="bookingsList" class="col-xs-12">
+				<script type="text/template" id="bookingListTemplate">
+				<div class="panel-group accordion-panel">
+				    <div class="panel">
+				        <div class="panel-heading">
+				            <h5 class="panel-title">
+				                <a class="accordion-toggle" data-toggle="collapse" href="#upcomingBookings">
+				                	Upcoming Bookings
+				                </a>
+				            </h4>
+				        </div>
+				        <div id="upcomingBookings" class="panel-collapse">
+				            <div class="panel-body">
+							<% if(upcomingBookings.length) { %>
+							    <ul class="icons-list text-md">
+							    	<% _.each(upcomingBookings, function(b) { %> 
+								        <li>
+								            <i class="icon-li fa fa-calendar"></i>
+									 <% if(moment(b.end) > moment()) { %>  
+								            <p><strong><%= b.title %></strong></p>
+											<small><% print(moment(b.start).format("MM DD h:mm a")) %></small> 
+									 <% } else { %>  
+								            <p class="text-muted"><%= b.title %></p>
+											<small><% print(moment(b.start).fromNow()) %></small> 
+				                        <% } %> 
+								        </li>
+							    	<% }); %>
+							    </ul>
+						    <% } else { %>
+								<p class="text-muted"><i><small>No upcoming bookings</small></i></p>
+						    <% } %>
+							<a href="{% url 'projects:create' %}">create new booking...</a>
+				            </div>
+				            <!-- /.panel-body -->
+				        </div>
+				        <!-- /.panel-collapse -->
+				    </div>
+				    <!-- /.panel -->
+				</div>
+				<% if(pastBookings.length) { %>
+				<div class="panel-group accordion-panel">
+				    <div class="panel">
+				        <div class="panel-heading">
+				            <h5 class="panel-title">
+				                <a class="accordion-toggle" data-toggle="collapse" href="#pastBookings">
+				                	Past Bookings <span class="fa fa-chevron-down pull-right"></span>
+				                </a>
+				            </h4>
+				        </div>
+				        <div id="pastBookings" class="panel-collapse collapse">
+				            <div class="panel-body">
+							    <ul class="icons-list text-md">
+							    	<% _.each(pastBookings, function(b) { %> 
+								        <li>
+								            <i class="icon-li fa fa-calendar"></i>
+									 <% if(moment(b.end) > moment()) { %>  
+								            <p><strong><%= b.title %></strong></p>
+											<small><% print(moment(b.start).format("MM DD h:mm a")) %></small> 
+									 <% } else { %>  
+								            <p class="text-muted"><%= b.title %></p>
+											<small><% print(moment(b.start).fromNow()) %></small> 
+				                        <% } %> 
+								        </li>
+							    	<% }); %>
+							    </ul>
+				            </div>
+				            <!-- /.panel-body -->
+				        </div>
+				        <!-- /.panel-collapse -->
+				    </div>
+				    <!-- /.panel -->
+				</div>
+			    <% } %>
+				</script>
+			</div>
+		</div>
+	</div>
+	<div class="col-md-9 layout-main">
+		<div class="row">
+			<div class="col-xs-12">
+				<div id='calendar'></div>
+			</div>
+		</div>
+	</div>
+</div>
+
+
+<!-- Booking Modal -->
+<div id="project-modal" class="modal fade">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+				<h4 class="modal-title"><a id="project-title" href="#" data-type="text" data-pk="1" data-value="BS" data-title="Project Title" class="" data-original-title="" title="" style="background-color: rgba(0, 0, 0, 0);"></a></h4>
+			</div>
+			<div class="modal-body">
+				<form action="/url/to/submit/" method="post" class="form">
+					{% csrf_token %}
+					<div class="panel panel-default">
+						<div class="panel-heading">{% trans "Bookings" %}</div>
+						<div class="panel-body">
+							<table class="">
+								<thead>
+									<th class="text-center">Resource</th>
+									<th class="text-center">Date</th>
+									<th class="text-center">Time</th>
+								</thead>
+								<tbody id="bookings">
+								</tbody>
+							</table>
+						</div>
+					</div>
+				</form>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+				<button type="button" class="btn btn-primary">Save changes</button>
+			</div>
+		</div><!-- /.modal-content -->
+	</div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+<script type="text/template" id="booking_template">
+<tr>
+	<td>
+		<select class="resource" style="width:100%">
+  			<option value="<%= resource %>" selected="selected"><%= resource_name %></option>
+		</select>
+	</td>
+	<td>
+		<input type="text" class="date text-center" value="<%= date %>" />
+	</td>
+	<td>
+		<input type="text" class="time text-right" value="<%= start_time %>" /><span>-</span>
+		<input type="text" class="time text-left" value="<%= end_time %>" />
+	</td>
+	<td>
+	</td>
+</tr>
+</script>
+
+{% endblock page-content %}
+
+
+{% block javascript %}
+	{{ block.super }}
+	<script src="{% static 'lib/fullcalendar/fullcalendar.min.js' %}"></script>
+	<script src="{% static 'lib/bootstrap3-editable/js/bootstrap-editable.min.js' %}"></script>
+	<script src="{% static 'lib/select2/dist/js/select2.full.min.js' %}"></script>
+	<script src="{% static 'lib/bootstrap-datepicker/js/bootstrap-datepicker.min.js' %}"></script>
+	<script src="{% static 'lib/jquery-timepicker/jquery.timepicker.min.js' %}"></script>
+	<script src="{% static 'js/calendar.js' %}"></script>
+	
+	<script>
+	
+/* 	$(document).ready(function() {
+		var resourceSelectData = [{% for resource in resource_list %}{id: {{resource.id}}, text: "{{resource.full_name}}"},{% endfor %}];	
+		{# project form #}
+		var booking_template = _.template( $("#booking_template").html(), {} );
+		var BookingView = Backbone.View.extend({
+			initialize: function(){
+				this.render();
+			},
+			render: function(){
+				var template = _.template( $("#booking_template").html(), {} );
+				this.$el.html( template );
+			}
+		});
+	
+		var Project = Model.extend({urlRoot : urls.api.projects});
+		var showProjectForm = function(projectID) {
+			var project = new Project({id: projectID});
+			project.fetch({success: function(instance, response, options) {
+				$('#project-title').attr('data-value', instance.get('title'));
+				$('#project-title').editable({mode: 'inline'});
+				// list bookings
+				var bookings = instance.get('bookings');
+				var html = "";
+				for(var i=0; i<bookings.length; i++) {
+					var vars = bookings[i];
+					vars['date'] = moment(vars.date).format("MM/DD/YY")
+					html += booking_template(vars)
+				}
+				$('#bookings').html(html);
+				$('#bookings .resource').select2({
+		            data: resourceSelectData,
+					placeholder: 'Talent Name',
+		            allowClear: false,
+			    });
+				$('#bookings .date').datepicker({
+				    todayBtn: "linked",
+				    format: "mm/dd/yy",
+				    autoclose: true,
+				    todayHighlight: true,
+				    toggleActive: true
+				})
+				$('#bookings .time').timepicker({})
+			}})
+			$('#project-modal').modal();
+	}
+		
+	});
+ */	
+	{# calendar #}	
+/* 	var calendar = null;
+	var init_calendar = function() {
+		if(calendar) {
+			calendar.fullCalendar('destroy');
+		}
+		var val = $('#resource-select-container select').val();
+		var url = urls.api.bookings;
+		if(val) {
+			url = url+"?resource__id="+val;	
+		} 
+	    $('#calendar').fullCalendar({
+	    	defaultView: 'agendaWeek',
+	    	selectable: true,
+			selectHelper: true,
+			select: function(start, end) {
+				var title = prompt('Event Title:');
+				var eventData;
+				if (title) {
+					eventData = {
+						title: title,
+						start: start,
+						end: end
+					};
+					$('#calendar').fullCalendar('renderEvent', eventData, true); // stick? = true
+				}
+				$('#calendar').fullCalendar('unselect');
+			},
+			eventClick: function(calEvent, jsEvent, view) {
+				showProjectForm(calEvent.project);
+			},
+			eventDrop: function(calEvent, delta, revertFunc) {
+				var event = new Event({
+					id: calEvent.id,
+					
+				});
+		    },
+			editable: true,
+			events: url,
+			businessHours: {
+			    start: '0:00',
+			    end: '24:00',
+			    dow: [ 1, 2, 3, 4, 5 ]
+			},
+	    });
+	    calendar = $('#calendar');
+	}
+	
+	$(document).ready(function() {
+		init_calendar();
+	});	
+	
+
+	// bind select resource select change
+ 	$( "#resource-select-container select" ).change(function() {
+ 		init_calendar();
+	});
+ */	</script>
+{% endblock javascript %}

@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block css %}
+	{{ block.super }}
+	<link rel="stylesheet" href="{% static 'lib/bootstrap-datepicker/css/bootstrap-datepicker.min.css' %}">
+	<link rel="stylesheet" href="{% static 'lib/jquery-timepicker/jquery.timepicker.css' %}">
+	<link rel="stylesheet" href="{% static 'lib/select2/dist/css/select2.css' %}">
+	<link rel="stylesheet" href="{% static 'lib/select2/dist/css/select2-bootstrap.css' %}">	
+	<link rel="stylesheet" href="{% static 'lib/bootstrap3-editable/css/bootstrap-editable.css' %}">	
+	<style>
+	.form-container {
+		margin: 10px;
+	}
+	.accordion-toggle.new i:before {
+	    content: "\f055";
+	    color: green;
+	    font-size: 1em;
+    	left: -2px;
+	}
+	.form-horizontal .editable {
+	    padding-top: 0px;
+	}
+	</style>
+{% endblock css %}
+
+{% block page-content %}
+<div class="row">
+	<div class="col-xs-12">
+		{% if project %}
+		<div class="well">
+			<div class="row">
+				<div class="col-md-4">
+					<h4><span class="text-muted">Project</span> {{ project.name }}</h4>
+					<p>{{ project.type }}</p>
+				</div>
+				<div class="col-md-4 text-center"></div>
+				<div class="col-md-4 text-right">
+					<span  class="label label-{% if project.contract.name == 'Non-Union' %}default{% else %}warning{% endif %}">{{ project.contract }}</span>
+				</div>
+			</div>
+		</div>
+		{% endif %}
+	
+		<form action="" method="post" class="form-horizontal">{% csrf_token %}
+			{{ formset.management_form }}
+		
+		
+		
+			<div>
+				<!-- Nav tabs -->
+				<ul class="nav nav-tabs" role="tablist">
+					{% if formset|length > 1 %}
+					<li role="presentation" class="{% if project %}active{% endif %}"><a href="#bookings" aria-controls="bookings" role="tab" data-toggle="tab">Bookings</a></li>
+					{% endif %}
+					<li role="presentation" class="{% if not project %}active{% endif %}"><a href="#project-details" aria-controls="details" role="tab" data-toggle="tab">Project Details</a></li>
+				</ul>
+			
+				<!-- Tab panes -->
+				<div class="tab-content">
+					{% if project %}
+					<div role="tabpanel" class="tab-pane fade in active" id="bookings">
+						
+						{# include "projects/project_booking_form.html" with form=formset. #}
+					
+			    		{% for booking_form in formset reversed %}
+			    			{% if booking_pk == booking_form.instance.pk %}
+			    				{% include "projects/project_booking_form.html" with form=booking_form form_open=1 %}
+			    			{% else %}
+			    				{% include "projects/project_booking_form.html" with form=booking_form form_open=0 %}
+			    			{% endif %}
+			    		{% endfor %}
+					
+					</div> <!-- /tabpanel -->
+					{% endif %} <!-- if project -->
+					
+					<div role="tabpanel" class="tab-pane fade {% if formset|length == 1 %}in active{% endif %}" id="project-form">
+				    	{% bootstrap_form form label_class="col-sm-1" field_class="col-sm-11" %}
+				    	{% if formset|length == 1 %}
+				    		{% include "bookings/partials/booking_fields.html" with form=formset.0 %}
+						{% endif %}
+					</div> <!-- /tabpanel -->
+				</div>
+			</div>				
+		
+			<div class="form-group pull-right">
+				<a class="btn btn-default" href="{{ success_url }}">Cancel</a>
+				<button class="btn btn-primary" type="submit" style="width:150px;">Save</button>
+			</div>		    
+		</form>
+	</div>
+</div>
+{% endblock page-content %}
+
+{% block javascript %}
+	{{ block.super }}
+	<script src="{% static 'lib/bootstrap-datepicker/js/bootstrap-datepicker.min.js' %}"></script>
+	<script src="{% static 'lib/jquery-timepicker/jquery.timepicker.min.js' %}"></script>
+	<script src="{% static 'lib/select2/dist/js/select2.min.js' %}"></script>	
+	<script src="{% static 'lib/bootstrap3-editable/js/bootstrap-editable.min.js' %}"></script>	
+    <script src="{% static 'js/project.js' %}"></script>
+    <script>
+    var project_as_json = {{ project_as_json|safe|default:"{}" }};
+    </script>
+{% endblock javascript %}

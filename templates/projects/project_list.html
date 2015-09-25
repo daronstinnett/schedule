@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+{% load static %}
+
+{% block css %}
+	{{ block.super }}
+	{% include "partials/include_backgrid.css.html" %}
+{% endblock css %}
+
+
+{% block page-content %}
+<div class="row">
+	<div class="col-xs-12">
+		<div id="project-grid">
+		</div>
+	</div>
+</div>
+{% endblock page-content %}
+
+{% block javascript %}
+	{{ block.super }}
+	{% include "partials/include_backgrid.js.html" %}
+	<script src="{% static 'js/project_list.js' %}"></script>
+{% endblock javascript %}

@@ -1,0 +1,47 @@
+{% load crispy_forms_tags %}
+
+<div class="panel-group accordion-panel" id="booking{{ form.instance.pk }}">
+    <div class="panel{% if form_open %} is-open{% endif %}">
+        <div class="panel-heading">
+            <h4 class="panel-title">
+                <a class="accordion-toggle {% if not form.instance.pk %}new{% endif %}" data-toggle="collapse" href="#booking{{ form.instance.pk }}-form">
+                	{% if form.instance.pk %}
+                	<div style="display:inline-block;min-width:20%;">{{ form.instance.resource }}</div>
+                	<div style="display:inline-block;font-weight:100;">{{ form.instance.date }} @ {{ form.instance.start_time }}</div>
+                	{% else %}
+                	Add Booking
+                	{% endif %}
+                </a>
+            </h4>
+        </div>
+        <!-- /.panel-heading -->
+        <div id="booking{{ form.instance.pk }}-form" class="panel-collapse{% if not form.errors and not form_open %} collapse{% else %} in{% endif %}">
+            <div class="panel-body">
+            	<div class="row row-full-height">
+            		<div class="col-xs-8">
+		            	<div class="row form-container">
+				    		{% crispy form %}
+	            		</div>
+            		</div>
+                	{% if form.instance.pk %}
+            		<div class="well col-xs-4 form-container">
+           				<ul class="fa-ul">
+           					<li>
+           						<i class="fa-li fa fa-sign-in text-muted"></i>
+           						move to: <a href="#" class="move-booking" data-pk="{{ form.instance.pk }}" data-type="select" data-value="{{ form.instance.project_id }}">project</a>
+           					</li>
+           					<li>
+           						<i class="fa-li fa fa-times text-danger"></i>
+           						<a href="#" class="delete-booking" data-pk="{{ form.instance.pk }}" data-target="#booking{{ form.instance.pk }}">delete booking</a>
+           					</li>
+           				</ul>
+            		</div>
+                	{% endif %}
+            	</div>
+            </div>
+            <!-- /.panel-body -->
+        </div>
+        <!-- /.panel-collapse -->
+    </div>
+    <!-- /.panel -->
+</div>
